@@ -9,7 +9,7 @@ case class Times(e1: Expr, e2: Expr) extends Expr
 in even-numbered positions. */
 def evens[A](l: List[A]): List[A] = l match {
     case Nil => Nil 
-    case x :: xs => x :: evens(xs.tail)
+    case x :: xs => x :: evens(xs.tail) // tail of an empty list is an error 
 }
 
 /* Returns true if all operations are addition, false otherwise.
