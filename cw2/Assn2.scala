@@ -338,11 +338,21 @@ object Assn2 {
 
   def subst(e1:Expr, e2:Expr, x: Variable): Expr =
     e1 match {
+      // Arithmetic
       case Num(e) => Num(e)
       case Plus(t1,t2) => Plus(subst(t1,e2,x),subst(t2,e2,x))
       case Minus(t1,t2) => Minus(subst(t1,e2,x),subst(t2,e2,x))
       case Times(t1,t2) => Times(subst(t1,e2,x),subst(t2,e2,x))
-
+      // Boolean 
+      case Bool(e) => Bool(e)
+          case Eq(t1,t2) => Eq(subst(t1,e2,x),subst(t2,e2,x))
+      case IfThenElse(t,t1,t2) => IfThenElse(subst(t,e2,x),subst(t1,e2,x),subst(t2,e2,x))
+      // Strings
+      case Str(e) => Str(e)
+      case Length(e) => Length(subst(e,e2,x))
+      case Index(t1,t2) => Index(subst(t1,e2,x),subst(t2,e2,x))
+      case Concat(t1,t2) => Concat(subst(t1,e2,x),subst(t2,e2,x))
+      // Variable
       case Var(y) =>
         if (x == y) {
           e2
@@ -354,8 +364,46 @@ object Assn2 {
         val fresh_t2 = swap(t2,y,z);
         Let(z,subst(t1,e2,x),subst(fresh_t2,e2,x))
       }
-
-      case _ => sys.error("subst: todo")
+      // Pairs
+      case Pair(t1,t2) => Pair(subst(t1,e2,x),subst(t2,e2,x))
+      case First(t) => First(subst(t,e2,x))
+      case Second(t) => Second(subst(t,e2,x))
+      // Functions 
+      // no need for x != y cases, because we will rename the bounding anyways! 
+      case Lambda(y,ty,e) => {
+        val z = Gensym.gensym(y);
+        val fresh_e = swap(e,y,z);
+        Lambda(z,ty,subst(fresh_e,e2,x))
+      }
+      case Rec(f,y,ty,tyf,e) => {
+        val g = Gensym.gensym(f);
+        val z = Gensym.gensym(y);
+        val fresh_e = swap(swap(e,y,z),f,g);
+        Rec(g,z,ty,tyf,subst(fresh_e,e2,x))
+      } 
+      case Apply(t1,t2) => Apply(subst(t1,e2,x),subst(t2,e2,x))
+      // Syntactic sugar
+      case LetPair(y1,y2,t1,t2) => {
+        val z1 = Gensym.gensym(y1);
+        val z2 = Gensym.gensym(y2);
+        val fresh_e = swap(swap(t2,y1,z1),y2,z2);
+        LetPair(z1,z2,subst(t1,e2,x),subst(fresh_e,e2,x)) 
+      }  
+      case LetFun(f,y,ty,t1,t2) => {
+        val g = Gensym.gensym(f);
+        val z = Gensym.gensym(y);
+        val fresh_e1 = swap(t1,y,z) ;
+        val fresh_e2 = swap(t2,f,g);
+        LetFun(g,z,ty,subst(fresh_e1,e2,x),subst(fresh_e2,e2,x))
+      }
+      case LetRec(f,y,yty,ty,t1,t2) => {
+        val g = Gensym.gensym(f);
+        val z = Gensym.gensym(y);
+        val fresh_e1 = swap(swap(t1,f,g),y,z);
+        val fresh_e2 = swap(t2,f,g);
+        LetRec(g,z,yty,ty,subst(fresh_e1,e2,x),subst(fresh_e2,e2,x))
+      } 
+      case _ => sys.error("Unable to perform substitution on the expression!")
     }
 
 
