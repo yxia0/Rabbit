@@ -406,19 +406,53 @@ object Assn2 {
       case _ => sys.error("Unable to perform substitution on the expression!")
     }
 
-
   // ======================================================================
   // Exercise 5: Desugaring let fun, let rec and let pair
   // ======================================================================
 
   def desugar(e: Expr): Expr = e match {
 
+    // Arithmetic
     case Num(n) => Num(n)
     case Plus(e1,e2) => Plus(desugar(e1),desugar(e2))
     case Minus(e1,e2) => Minus(desugar(e1),desugar(e2))
     case Times(e1,e2) => Times(desugar(e1),desugar(e2))
-
-    case _ => sys.error("desugar: todo")
+    // Boolean 
+    case Bool(b) => Bool(b)
+    case IfThenElse(t,t1,t2) => IfThenElse(desugar(t),desugar(t1),desugar(t2))
+    // Strings
+    case Str(s) => Str(s)
+    case Length(s) => Length(desugar(s))
+    case Index(e1,e2) => Index(desugar(e1),desugar(e2))
+    case Concat(e1,e2) => Concat(desugar(e1),desugar(e2))
+    // Variables and let-binding
+    case Var(x) => Var(x) 
+    case Let(x,e1,e2) => Let(x,desugar(e1),desugar(e2))
+    // Pairings 
+    case Pair(e1,e2) => Pair(desugar(e1),desugar(e2))
+    case First(p) => First(desugar(p))
+    case Second(p) => Second(desugar(p))
+    // Functions 
+    case Lambda(x,ty,e1) => Lambda(x,ty,desugar(e1))
+    case Rec(f,x,ty,tyf,e1) => Rec(f,x,ty,tyf,desugar(e1))
+    case Apply(e1,e2) => Apply(desugar(e1),desugar(e2))
+    // Syntactic sugar let binding 
+    // let binding pair 
+    // not sure!!! 
+    case LetPair(x,y,e1,e2) => {
+      val p = Gensym.gensym(x);
+      val fresh_e = subst(subst(e2,Var(p),x),Var(p),y);
+      Let(p,e1,fresh_e)
+    } 
+    // let binding functions
+    case LetFun(f,x,xty,e1,e2) => {
+      Let(f,Lambda(x,xty,e1),e2) 
+    }
+    case LetRec(f,x,xty,ty,e1,e2) => {
+      Let(f,Rec(f,x,xty,ty,e1),e2)
+    }
+     
+    case _ => sys.error("Desugar not supported!") 
 
   }
 
