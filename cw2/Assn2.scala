@@ -123,6 +123,10 @@ object Assn2 {
       case (StringTy,StringTy) => ()
       // case (PairTy,PairTy) => () // does it make sense? No - why? 
       // case (FunTy,FunTy) => () // does it make sense? No - why? 
+ 
+      // we can do recursively on checking the type, 
+      // use getClass!! Pair and Pair will match but you want to look at how inside things work 
+      // 
       case _ => sys.error("Type error: Expected {ty1} and {ty2} to be equal types")
     }
   }
@@ -217,9 +221,14 @@ object Assn2 {
       case _ => sys.error("equality arguments have different types OR have type other than Int, Bool, Str")
     }
     case IfThenElse(e,e1,e2) => tyOf(ctx,e) match {
-      case BoolTy => 
-        Type.checkEq(tyOf(ctx,e1),tyOf(ctx,e2))
-        tyOf(ctx,e1)
+      case BoolTy => {
+        val ty1 = tyOf(ctx,e1);
+        val ty2 = tyOf(ctx,e2);
+        if (ty1.equals(ty2)) {ty1} else {
+          sys.error("conditional branches needs to have same types")
+        }
+      }
+        // TODO : either expand checkEq or find a different approach!!! 
       case _ => sys.error("conditional testing needs to be bool type")
     }
     // Strings
@@ -253,9 +262,11 @@ object Assn2 {
     case Lambda(x,ty,e) => FunTy(ty, tyOf(ctx + (x -> ty),e))
     case Rec(f,x,tyx,ty,e) => FunTy(tyx, tyOf(ctx + (f -> FunTy(tyx,ty), x -> tyx),e)) // OR should I simply do (tyx, ty)? 
     case Apply(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
-      case (FunTy(ty1,ty2),ty3) => 
-        Type.checkEq(ty1,ty3)
-        ty1
+      case (FunTy(ty1,ty2),ty3) => {
+        if (ty1.equals(ty3)) {ty1} else {
+          sys.error("argument to function and func parameter does not have same type")
+        }
+      }
       case _ => sys.error("argument to function does not match required arg type") // can we give more informatic error message here? 
     }
     // Syntactic sugar let-binding 
