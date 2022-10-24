@@ -121,9 +121,12 @@ object Assn2 {
       case (IntTy,IntTy) => ()
       case (BoolTy,BoolTy) => ()
       case (StringTy,StringTy) => ()
-      // case (PairTy,PairTy) => () // does it make sense? No - why? 
-      // case (FunTy,FunTy) => () // does it make sense? No - why? 
- 
+      case (PairTy(xty1,xty2),PairTy(yty1,yty2)) => 
+        checkEq(xty1,yty1)  
+        checkEq(xty2,yty2) 
+      case (FunTy(xty1,xty2),FunTy(yty1,yty2)) => 
+        checkEq(xty1,yty1)  
+        checkEq(xty2,yty2) 
       // we can do recursively on checking the type, 
       // use getClass!! Pair and Pair will match but you want to look at how inside things work 
       // 
@@ -224,11 +227,13 @@ object Assn2 {
       case BoolTy => {
         val ty1 = tyOf(ctx,e1);
         val ty2 = tyOf(ctx,e2);
-        if (ty1.equals(ty2)) {ty1} else {
-          sys.error("conditional branches needs to have same types")
-        }
+        // Alternative - but in this CW do not use Scala features not covered in lab  
+        // if (ty1.equals(ty2)) {ty1} else {
+        //   sys.error("conditional branches needs to have same types")
+        // } 
+        Type.checkEq(ty1,ty2);
+        ty1;
       }
-        // TODO : either expand checkEq or find a different approach!!! 
       case _ => sys.error("conditional testing needs to be bool type")
     }
     // Strings
@@ -263,9 +268,12 @@ object Assn2 {
     case Rec(f,x,tyx,ty,e) => FunTy(tyx, tyOf(ctx + (f -> FunTy(tyx,ty), x -> tyx),e)) // OR should I simply do (tyx, ty)? 
     case Apply(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
       case (FunTy(ty1,ty2),ty3) => {
-        if (ty1.equals(ty3)) {ty1} else {
-          sys.error("argument to function and func parameter does not have same type")
-        }
+        // Alternative - but in this CW do not use Scala features not covered in lab  
+        // if (ty1.equals(ty3)) {ty1} else {
+        //   sys.error("argument to function and func parameter does not have same type")
+        // }
+        Type.checkEq(ty1,ty3);
+        ty1
       }
       case _ => sys.error("argument to function does not match required arg type") // can we give more informatic error message here? 
     }
@@ -699,7 +707,7 @@ object Assn2 {
       // TODO: 
 
     def evaluate(ast: Expr):Value =
-      eval(Map.empty,ast)
+      eval(Map.empty,ast);
       // TODO: 
 
 
