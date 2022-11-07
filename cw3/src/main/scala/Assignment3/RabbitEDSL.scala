@@ -126,9 +126,52 @@ object Assignment3Embedded {
    ****************/
 
   // BEGIN ANSWER
-  /* Use shallow embeddings as implementation strategy
+  /* Helper methods for move, scale and rotate
   */
+  object Helper {
+    def moveFrame(dx: Int)(dy: Int)(f: List[Picture]): List[Picture] = f match {
+      case Nil => Nil
+      case p :: ps => 
+      p match {
+        case Picture(name,x,y,scale,angle) => 
+        Picture(name,x+dx,y+dy,scale,angle) :: moveFrame(dx)(dy)(ps)
+        case _ => sys.error("Non-picture item found in a frame!")
+      }
+    }
 
+    def scaleFrame(factor: Double)(f: List[Picture]): List[Picture] = f match {
+      case Nil => Nil 
+      case p :: ps => 
+      p match {
+        case Picture(name,x,y,scale,angle) => {
+          val newX: Int = (x*factor).toInt;
+          val newY: Int = (y*factor).toInt;
+          val newFact: Double = (scale*factor).toDouble;
+          Picture(name,newX,newY,newFact,angle) :: scaleFrame(factor)(ps)
+        }
+        case _ => sys.error("Non-picture item found in a frame!")
+      }
+    }
+
+    def rotateFrame(r: Double)(f: List[Picture]): List[Picture] = f match {
+      case Nil => Nil
+      case p :: ps => 
+      p match {
+        case Picture(name,x,y,scale,angle) => {
+          val newX: Int = (x*cos(r) + y*sin(r)).toInt;
+          val newY: Int = (-x*sin(r) + y*cos(r)).toInt;
+          val newAngle: Double = angle + r;
+          Picture(name,newX,newY,scale,newAngle) :: rotateFrame(r)(ps)
+        }
+        case _ => sys.error("Non-picture item found in a frame!")
+      }
+    }
+  }
+  
+  
+  /* 
+  * Implementation using shallow embeddings
+  */
   object RabbitDSLImpl extends RabbitDSL {
     type RabbitAnimation[T] = Signal[T]
 
@@ -138,39 +181,36 @@ object Assignment3Embedded {
     def read(name: String): RabbitAnimation[Frame]
       = {
         val pic = Picture(name);
-        List(pic)
+        Signal(List(pic))
       }
 
     def blank(): RabbitAnimation[Frame]
-      = List()
+      = {
+        Signal(List())
+      }
 
     def pure[A](t: A): RabbitAnimation[A]
-      = pure(t)
+      = Signal(t)
 
     def app[A, B](f: RabbitAnimation[A => B], t: RabbitAnimation[A])
                  : RabbitAnimation[B]
-      = {
-        app(f)(t)
-      }
+      = Signal(f()(t()))
 
     def when[A]( b: RabbitAnimation[Boolean], t1: RabbitAnimation[A]
                , t2: RabbitAnimation[A]): RabbitAnimation[A]
-      = b match {
-        case Signal(true) => t1
-        case Signal(false) => t2
-      }
+      = lift3(t1)(t2)(b)({(t1:A) => (t2:A) => (b:Boolean) => if (b) {t1} else {t2}})
 
     def moveXY( dx: RabbitAnimation[Int], dy: RabbitAnimation[Int]
               , a: RabbitAnimation[Frame]): RabbitAnimation[Frame]
-      = 
+      = lift3(dx)(dy)(a)(Helper.moveFrame)
 
     def scale(factor: RabbitAnimation[Double], a: RabbitAnimation[Frame])
              : RabbitAnimation[Frame]
-      = sys.error("todo")
+      = lift2(factor)(a)(Helper.scaleFrame)
 
     def rotate(angle: RabbitAnimation[Double], a: RabbitAnimation[Frame])
               : RabbitAnimation[Frame]
-      = sys.error("todo")
+      = lift2(angle)(a)(Helper.rotateFrame)
 
     def over(x: RabbitAnimation[Frame], y: RabbitAnimation[Frame])
             : RabbitAnimation[Frame]
@@ -191,8 +231,8 @@ object Assignment3Embedded {
   ///////////////////////////////////////////////////////////////////////////
 
   // change the comments to test RabbitDSLImpl instead
-  import Testing._
-  // import RabbitDSLImpl._
+  // import Testing._
+  import RabbitDSLImpl._
 
   def turtleAndRabbit() =
     moveXY(pure({x:Int => x*50-500}) <*> time, pure(200), read("turtle")) <+>
