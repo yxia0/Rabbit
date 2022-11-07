@@ -1,0 +1,15 @@
+.DS_Store
+Assn3Solution.jar
+build.sbt
+compile.sh
+run_edsl.sh
+run_sample.sh
+run.sh
+sample_edsl.sh
+sample.sh
+test.sh
+target/
+project/
+lib/
+images/
+examples/
