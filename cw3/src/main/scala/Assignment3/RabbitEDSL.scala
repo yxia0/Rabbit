@@ -136,25 +136,33 @@ object Assignment3Embedded {
       = envtime
 
     def read(name: String): RabbitAnimation[Frame]
-      = sys.error("todo")
+      = {
+        val pic = Picture(name);
+        List(pic)
+      }
 
     def blank(): RabbitAnimation[Frame]
-      = sys.error("todo")
+      = List()
 
     def pure[A](t: A): RabbitAnimation[A]
-      = sys.error("todo")
+      = pure(t)
 
     def app[A, B](f: RabbitAnimation[A => B], t: RabbitAnimation[A])
                  : RabbitAnimation[B]
-      = sys.error("todo")
+      = {
+        app(f)(t)
+      }
 
     def when[A]( b: RabbitAnimation[Boolean], t1: RabbitAnimation[A]
                , t2: RabbitAnimation[A]): RabbitAnimation[A]
-      = sys.error("todo")
+      = b match {
+        case Signal(true) => t1
+        case Signal(false) => t2
+      }
 
     def moveXY( dx: RabbitAnimation[Int], dy: RabbitAnimation[Int]
               , a: RabbitAnimation[Frame]): RabbitAnimation[Frame]
-      = sys.error("todo")
+      = 
 
     def scale(factor: RabbitAnimation[Double], a: RabbitAnimation[Frame])
              : RabbitAnimation[Frame]
@@ -166,10 +174,12 @@ object Assignment3Embedded {
 
     def over(x: RabbitAnimation[Frame], y: RabbitAnimation[Frame])
             : RabbitAnimation[Frame]
-      = sys.error("todo")
+      = {
+        lift2(x)(y)({(x:Frame) => (y:Frame) => y ++ x})
+      } 
 
     def runRabbitAnimation[T](term: RabbitAnimation[T]): Signal[T]
-      = sys.error("todo")
+      = term
   }
 
   // END ANSWER
