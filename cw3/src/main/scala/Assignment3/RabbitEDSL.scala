@@ -185,16 +185,15 @@ object Assignment3Embedded {
       }
 
     def blank(): RabbitAnimation[Frame]
-      = {
-        Signal(List())
-      }
+      = Signal.pure(List())
+      
 
     def pure[A](t: A): RabbitAnimation[A]
-      = Signal(t)
+      = Signal.pure(t)
 
     def app[A, B](f: RabbitAnimation[A => B], t: RabbitAnimation[A])
                  : RabbitAnimation[B]
-      = Signal(f()(t()))
+      = Signal.app(f)(t)
 
     def when[A]( b: RabbitAnimation[Boolean], t1: RabbitAnimation[A]
                , t2: RabbitAnimation[A]): RabbitAnimation[A]
