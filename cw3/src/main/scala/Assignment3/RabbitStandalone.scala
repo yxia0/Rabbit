@@ -43,6 +43,94 @@ object Assignment3Standalone {
       // Values
       case v: Value => valueTy(v)
       // BEGIN ANSWER
+      // Arithmetic expressions
+      case Plus(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (IntTy, IntTy) => IntTy
+        case _ => sys.error("non-integer arguments to Plus") 
+      }
+      case Minus(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (IntTy, IntTy) => IntTy
+        case _ => sys.error("non-integer arguments to Minus")
+      }
+      case Times(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (IntTy, IntTy) => IntTy
+        case _ => sys.error("non-integer arguments to Times")
+      }
+      case Div(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (IntTy, IntTy) => IntTy
+        case _ => sys.error("non-integer arguments to Division")
+      }
+      // Booleans
+      case Eq(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (IntTy, IntTy) => BoolTy
+        case _ => sys.error("types of Eq must be equal and Int")
+      }
+      case GreaterThan(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (IntTy, IntTy) => BoolTy
+        case _ => sys.error("types of GreaterThan must be equal and Int")
+      }
+      case LessThan(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (IntTy, IntTy) => BoolTy
+        case _ => sys.error("types of LessThan must be equal and Int")
+      }
+      case IfThenElse(e,e1,e2) => 
+        (tyOf(ctx,e),tyOf(ctx,e1),tyOf(ctx,e2)) match {
+          case (BoolTy,a,b) => if (a == b) {
+            a
+          } else {
+            sys.error("types of branches must be equal")
+          }
+          case (_,a,b) => sys.error("type of conditional must be boolean")
+      }
+      // Variables and let-binding
+      case Var(x) => ctx(x)
+      case Let(x,e1,e2) => tyOf(ctx + (x -> (tyOf(ctx,e1))), e2)
+      // Functions
+      case Lambda(x,ty,e) => FunTy(ty, tyOf(ctx + (x -> ty),e))
+      case Rec(f,x,tyx,ty,e) => tyOf(ctx + (f -> FunTy(tyx,ty), x -> tyx),e) match {
+        case body => if (ty == body) {
+          FunTy(tyx,ty)
+        } else {
+          sys.error("Function body type does not match that specified")
+        }
+      } 
+      case Apply(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (FunTy(a,b),c) => if (a == c) {
+          b
+        } else {
+          sys.error("Argument type does not match funtion input")
+        }
+        case (a,c) => sys.error("Function type not found! \n" + 
+          "Typing " + e1.toString + "type is: " + a.toString + "\n" +
+          "Typing " + e2.toString + "type is: " + c.toString + "\n")
+      }
+      // Pairs
+      case Pair(e1,e2) => PairTy(tyOf(ctx,e1),tyOf(ctx,e2))
+      case Fst(e) => tyOf(ctx,e) match {
+        case PairTy(ty1,ty2) => ty1
+        case _ => sys.error("First must be applied to a pair")
+      }
+      case Snd(e) => tyOf(ctx,e) match {
+        case PairTy(ty1,ty2) => ty2
+        case _ => sys.error("Second must be applied to a pair")
+      }
+      case LetPair(x,y,e1,e2) => tyOf(ctx,e1) match {
+        case PairTy(a,b) => tyOf((ctx + (x -> a) + (y -> b)),e2)
+        case _ => sys.error("LetPair's first arg must be a pair")
+      }
+      // Lists
+      case EmptyList(ty) => ListTy(ty)
+      case Cons(e,e2) => 
+      case ListCase(l,e1,x,y,e2) => 
+      // Sequencing 
+      case Seq(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (UnitTy, a) => a 
+        case (_, a) => sys.error("todo")
+      }
+      // Signal expression 
+      case 
+
+
       case _ => sys.error("todo")
       // END ANSWER
     }
