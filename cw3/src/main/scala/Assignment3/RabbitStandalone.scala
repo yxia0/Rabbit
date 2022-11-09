@@ -216,7 +216,104 @@ object Assignment3Standalone {
     e match {
       // Values
       case v: Value => valueTy(v)
-      // BEGIN ANSWER
+      // Arithmetic expressions
+      case Plus(e1,e2) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (IntTy,IntTy) => IntTy
+        case _ => sys.error("Plus args must be Int type")
+      }
+      case Minus(e1,e2) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (IntTy,IntTy) => IntTy
+        case _ => sys.error("Minus args must be Int type")
+      }
+      case Times(e1,e2) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (IntTy,IntTy) => IntTy
+        case _ => sys.error("Times args must be Int type")
+      } 
+      case Div(e1,e2) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (IntTy,IntTy) => IntTy
+        case _ => sys.error("Div args must be Int type")
+      }
+      // Booleans
+      case Eq(e1,e2) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (IntTy,IntTy) => BoolTy
+        case (BoolTy,BoolTy) => BoolTy
+        case _ => sys.error("Eq args must be Int or Bool type")
+      }
+      case LessThan(e1,e2) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (IntTy,IntTy) => BoolTy
+        case _ => sys.error("LessThan args must be Int type")
+      }
+      case GreaterThan(e1,e2) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (IntTy,IntTy) => BoolTy
+        case _ => sys.error("GreaterThan args must be Int type")
+      }
+      case IfThenElse(e,e1,e2) => (tyOfSignal(ctx,e),tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (BoolTy,a,b) => if (a == b) {
+          a
+        } else {
+          sys.error("IfThenElse branches do not match!\n" + 
+            "Typing " + e1.toString + "type is: " + a.toString + "\n" +
+            "Typing " + e2.toString + "type is: " + b.toString + "\n")
+        }
+        case (_,a,b) => sys.error("IfThenElse condition must be boolean type")
+      }
+      // Variables
+      case Var(x) => {
+        val ty = ctx(x)
+        if (isSimpleType(ty)) {
+          ty
+        } else {
+          sys.error("Var " + x + " is not a simple type\n"+ 
+            "Typing " + x.toString + "type is: " + ty.toString + "\n")
+        }
+      }
+      // Functions 
+      case App(e1,e2) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (FunTy(a,b),c) => if (a == c) {
+          b
+        } else {
+          sys.error("App args do not match!\n" + 
+            "Typing " + e1.toString + "type is: " + a.toString + "\n" +
+            "Typing " + e2.toString + "type is: " + c.toString + "\n")
+        }
+        case (a,b) => sys.error("App args must be Fun type!\n" + 
+          "Typing " + e1.toString + "type is: " + a.toString + "\n" + 
+          "Typing " + e2.toString + "type is: " + b.toString + "\n")
+      }
+      // Signals 
+      case Time => IntTy
+      case Blank => FrameTy
+      case Over(e1,e2) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2)) match {
+        case (FrameTy,FrameTy) => FrameTy
+        case (a,b) => sys.error("Over args must be Frame type!\n" + 
+          "Typing " + e1.toString + "type is: " + a.toString + "\n" + 
+          "Typing " + e2.toString + "type is: " + b.toString + "\n")
+      }
+      case MoveXY(e1,e2,e3) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2),tyOfSignal(ctx,e3)) match {
+        case (IntTy,IntTy,FrameTy) => FrameTy
+        case (a,b,c) => sys.error("MoveXY args must be Int,Int,Frame type!\n" + 
+          "Typing " + e1.toString + "type is: " + a.toString + "\n" + 
+          "Typing " + e2.toString + "type is: " + b.toString + "\n" +
+          "Typing " + e3.toString + "type is: " + c.toString + "\n")
+      }
+      case When(e1,e2,e3) => (tyOfSignal(ctx,e1),tyOfSignal(ctx,e2),tyOfSignal(ctx,e3)) match {
+        case (BoolTy,a,b) => if (a == b) {
+          a
+        } else {
+          sys.error("When branch types do not match!\n" + 
+            "Typing " + e2.toString + "type is: " + a.toString + "\n" +
+            "Typing " + e3.toString + "type is: " + b.toString + "\n")
+        }
+        case (_,a,b) => sys.error("When condition must be boolean type")
+      }
+      case Read(e) => tyOf(ctx,e) match {
+        case StringTy => StringTy
+        case _ => sys.error("Read arg must be String type")
+      }
+      case Escape(e) => tyOf(ctx,e) match {
+        case SignalBlock(ty) => ty 
+        case _ => sys.error("Escape arg must be Signal Block type")
+      }
       case _ => sys.error("todo")
       // END ANSWER
     }
