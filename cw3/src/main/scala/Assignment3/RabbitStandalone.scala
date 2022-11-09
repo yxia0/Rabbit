@@ -207,7 +207,8 @@ object Assignment3Standalone {
       case SignalBlock(se) => tyOfSignal(ctx,se) match {
         case a => SignalTy(a)
       }
-      case _ => sys.error("todo")
+      case _ => sys.error("Unknown type!\n" + 
+          "Typing " + e.toString + "type is unknown. \n")
       // END ANSWER
     }
   }
@@ -318,7 +319,8 @@ object Assignment3Standalone {
         case SignalTy(a) => a 
         case _ => sys.error("Escape arg must be Signal Block type")
       }
-      case _ => sys.error("todo")
+      case _ => sys.error("Unknown type!\n" + 
+          "Typing " + e.toString + "type is unknown. \n")
       // END ANSWER
     }
   }
