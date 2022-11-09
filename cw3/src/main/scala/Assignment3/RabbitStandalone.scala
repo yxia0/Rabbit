@@ -94,7 +94,7 @@ object Assignment3Standalone {
           sys.error("Function body type does not match that specified")
         }
       } 
-      case Apply(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+      case App(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
         case (FunTy(a,b),c) => if (a == c) {
           b
         } else {
@@ -120,17 +120,89 @@ object Assignment3Standalone {
       }
       // Lists
       case EmptyList(ty) => ListTy(ty)
-      case Cons(e,e2) => 
-      case ListCase(l,e1,x,y,e2) => 
+      case Cons(e,e2) => (tyOf(ctx,e),tyOf(ctx,e2)) match {
+        case (a,ListTy(b)) => if (a == b) {
+          ListTy(a)
+        } else {
+          sys.error("List element type does not match! \n" + 
+          "Typing " + e.toString + "type is: " + a.toString + "\n" +
+          "Typing " + e2.toString + "type is: " + b.toString + "\n")
+        }
+        case (a,b) => 
+          sys.error("List type not found!\n" + 
+          "Typing " + e.toString + "type is: " + a.toString + "\n" +
+          "Typing " + e2.toString + "type is: " + b.toString + "\n")
+      }
+      case ListCase(l,e1,x,y,e2) => (tyOf(ctx,l),tyOf(ctx,e1)) match {
+        case (ListTy(a),b) => tyOf(ctx + (x -> a) + (y -> ListTy(a)),e2) match {
+          case c => if (c == b) {
+            b
+           } else {
+            sys.error("Types in ListCase branches do not match!\n" + 
+            "Typing " + e1.toString + "type is: " + b.toString + "\n" +
+            "Typing " + e2.toString + "type is: " + c.toString + "\n")
+           }
+        }
+        case (a,b) => sys.error("ListCase's first arg must be a list")
+      }
       // Sequencing 
       case Seq(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
         case (UnitTy, a) => a 
         case (_, a) => sys.error("todo")
       }
       // Signal expression 
-      case 
-
-
+      case Pure(e) => tyOf(ctx,e) match {
+        case a => if (isSimpleType(a)) {
+          SignalTy(a)
+        } else {
+          sys.error("Type is not a simple type!\n" + 
+          "Typing " + e.toString + "type is: " + a.toString + "\n")
+        }
+      }
+      case Apply(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (SignalTy(FunTy(a,b)),SignalTy(c)) => if (a == c) {
+          SignalTy(b)
+        } else {
+          sys.error("Argument type does not match signal funtion input")
+        }
+        case (SignalTy(a),SignalTy(c)) => sys.error("Apply's first arg must be a functional signal")
+        case (a,b) => sys.error("Apply args must be Signal type!\n" + 
+          "Typing " + e1.toString + "type is: " + a.toString + "\n" + 
+          "Typing " + e2.toString + "type is: " + b.toString + "\n")
+      }
+      case Time => SignalTy(IntTy)
+      case Blank => SignalTy(FrameTy)
+      case Over(e1,e2) => (tyOf(ctx,e1),tyOf(ctx,e2)) match {
+        case (SignalTy(FrameTy),SignalTy(FrameTy)) => SignalTy(FrameTy)
+        case (a,b) => sys.error("Over args must be Signal type!\n" + 
+          "Typing " + e1.toString + "type is: " + a.toString + "\n" + 
+          "Typing " + e2.toString + "type is: " + b.toString + "\n")
+      }
+      case MoveXY(e1,e2,e3) => (tyOf(ctx,e1),tyOf(ctx,e2),tyOf(ctx,e3)) match {
+        case (SignalTy(IntTy),SignalTy(IntTy),SignalTy(FrameTy)) => SignalTy(FrameTy)
+        case (a,b,c) => sys.error("MoveXY args must be Signal type!\n" + 
+          "Typing " + e1.toString + "type is: " + a.toString + "\n" + 
+          "Typing " + e2.toString + "type is: " + b.toString + "\n" + 
+          "Typing " + e3.toString + "type is: " + c.toString + "\n")
+      }
+      case When(e1,e2,e3) => (tyOf(ctx,e1),tyOf(ctx,e2),tyOf(ctx,e3)) match {
+        case (SignalTy(BoolTy),SignalTy(a),SignalTy(b)) => if (a == b) {
+          SignalTy(a)
+        } else {
+          sys.error("Types in When branches do not match!\n" + 
+            "Typing " + e2.toString + "type is: " + a.toString + "\n" +
+            "Typing " + e3.toString + "type is: " + b.toString + "\n")
+        }
+        case (SignalTy(_), SignalTy(a),SignalTy(b)) => sys.error("When condition must be signal boolean type")
+        case (a,b,c) => sys.error("When args must be Signal type!\n" + 
+          "Typing " + e1.toString + "type is: " + a.toString + "\n" + 
+          "Typing " + e2.toString + "type is: " + b.toString + "\n" +
+          "Typing " + e3.toString + "type is: " + c.toString + "\n")
+      }
+      case Read(e) => tyOf(ctx,e) match {
+        case StringTy => SignalTy(StringTy)
+        case _ => sys.error("Read requires String type arg")
+      }
       case _ => sys.error("todo")
       // END ANSWER
     }
