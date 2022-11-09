@@ -200,7 +200,7 @@ object Assignment3Standalone {
           "Typing " + e3.toString + "type is: " + c.toString + "\n")
       }
       case Read(e) => tyOf(ctx,e) match {
-        case StringTy => SignalTy(StringTy)
+        case StringTy => SignalTy(FrameTy)
         case _ => sys.error("Read requires String type arg")
       }
       // Signal Block 
@@ -311,7 +311,7 @@ object Assignment3Standalone {
         case (_,a,b) => sys.error("When condition must be boolean type")
       }
       case Read(e) => tyOf(ctx,e) match {
-        case StringTy => StringTy
+        case StringTy => FrameTy
         case _ => sys.error("Read arg must be String type")
       }
       case Escape(e) => tyOf(ctx,e) match {
