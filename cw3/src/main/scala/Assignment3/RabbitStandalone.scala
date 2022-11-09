@@ -203,6 +203,10 @@ object Assignment3Standalone {
         case StringTy => SignalTy(StringTy)
         case _ => sys.error("Read requires String type arg")
       }
+      // Signal Block 
+      case SignalBlock(se) => tyOfSignal(ctx,se) match {
+        case a => SignalTy(a)
+      }
       case _ => sys.error("todo")
       // END ANSWER
     }
@@ -311,7 +315,7 @@ object Assignment3Standalone {
         case _ => sys.error("Read arg must be String type")
       }
       case Escape(e) => tyOf(ctx,e) match {
-        case SignalBlock(ty) => ty 
+        case SignalTy(a) => a 
         case _ => sys.error("Escape arg must be Signal Block type")
       }
       case _ => sys.error("todo")
