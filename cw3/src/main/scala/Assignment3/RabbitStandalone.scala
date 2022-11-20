@@ -550,8 +550,8 @@ object Assignment3Standalone {
       case MoveXY(e1,e2,e3) => MoveXY(desugar(e1),desugar(e2),desugar(e3))
       case Over(e1,e2) => Over(desugar(e1),desugar(e2))
       case When(e1,e2,e3) => When(desugar(e1),desugar(e2),desugar(e3))
-      // TODO: 
       // Signal blocks
+      case SignalBlock(se) => desugarBlock(se)
       case e => e // EmptyList, Time, Blank, Num, Bool, String... 
       // END ANSWER
     }
@@ -560,13 +560,65 @@ object Assignment3Standalone {
   /****************
    *  Exercise 6  *
    ****************/
+
+  def desugarBinarySigFunc(e: Expr): Expr = {
+    val x = Gensym.gensym("x");
+    val y = Gensym.gensym("y");
+    e match {
+      case Plus(se1,se2) => {
+        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Plus(Var(x),Var(y)))));
+        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
+      }
+      case Minus(se1,se2) => {
+        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Minus(Var(x),Var(y)))));
+        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
+      }
+      case Times(se1,se2) => {
+        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Times(Var(x),Var(y)))));
+        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
+      }
+      case Div(se1,se2) => {
+        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Div(Var(x),Var(y)))));
+        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
+      }
+      case Eq(se1,se2) => {
+        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Eq(Var(x),Var(y)))));
+        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
+      }
+      case GreaterThan(se1,se2) => {
+        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,GreaterThan(Var(x),Var(y)))));
+        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
+      }
+      case LessThan(se1,se2) => {
+        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,LessThan(Var(x),Var(y)))));
+        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
+      }
+      case _ => sys.error("Desugaring Signal Block does not support: " + e)
+    }
+  }
+
   def desugarBlock(e: Expr): Expr = {
     e match {
       case v: Value => Pure(desugar(v))
 
       // BEGIN ANSWER
-
-      //case _ => sys.error("todo")
+      // function application
+      case App(se1, se2) => Apply(desugarBlock(se1), desugarBlock(se2))
+      // Booleans
+      case IfThenElse(se,se1,se2) => 
+        When(desugarBlock(se),desugarBlock(se1),desugarBlock(se2))
+      // Singal ops
+      case Over(se1,se2) => Over(desugarBlock(se1),desugarBlock(se2))
+      // Time 
+      case Time => Time
+      // Read 
+      case Read(se) => Read(desugar(se))
+      // MoveXY
+      case MoveXY(se1,se2,se3) => MoveXY(desugar(se1),desugar(se2),desugar(se3))
+      // Escape
+      case Escape(e1) => desugar(e1)
+      // Binary ops and others
+      case e => desugarBinarySigFunc(e)
       // END ANSWER
     }
   }
