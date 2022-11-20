@@ -524,6 +524,10 @@ object Assignment3Standalone {
       }
       case GreaterThan(e1,e2) => GreaterThan(desugar(e1),desugar(e2))
       case LessThan(e1,e2) => LessThan(desugar(e1),desugar(e2))
+      // Functions 
+      case Lambda(x,ty,e1) => Lambda(x,ty,desugar(e1))
+      case Rec(f,x,tyx,ty,e1) => Rec(f,x,tyx,ty,desugar(e1))
+      case App(e1,e2) => App(desugar(e1),desugar(e2))
       // Let-bindings 
       case Let(x,e1,e2) => Let(x,desugar(e1),desugar(e2))
       // Syntactic-sugar 
@@ -564,6 +568,8 @@ object Assignment3Standalone {
     e match {
       case v: Value => Pure(desugar(v))
       // BEGIN ANSWER
+      // Variables 
+      case Var(x) => Pure(Var(x))
       // function application
       case App(se1, se2) => Apply(desugarBlock(se1), desugarBlock(se2))
       // Booleans
@@ -580,8 +586,6 @@ object Assignment3Standalone {
         MoveXY(desugarBlock(se1),desugarBlock(se2),desugarBlock(se3))
       // When
       case When(se1,se2,se3) => When(desugarBlock(se1),desugarBlock(se2),desugarBlock(se3))
-      // Blank 
-      case Blank => Blank
       // Escape
       case Escape(e1) => desugar(e1)
       // Binary ops
@@ -627,7 +631,7 @@ object Assignment3Standalone {
         Apply(Apply(Pure(Lambda(x,IntTy,Lambda(y,IntTy,LessThan(Var(x),Var(y))))),
           desugarBlock(se1)),desugarBlock(se2))
       }
-      case _ => sys.error("Desugaring Signal Block does not support: " + e)
+      case e => e
       // END ANSWER
     }
   }
