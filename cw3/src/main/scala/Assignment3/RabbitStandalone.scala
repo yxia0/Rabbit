@@ -512,7 +512,47 @@ object Assignment3Standalone {
     e match {
       case v: Value => desugarVal(v)
       // BEGIN ANSWER
-      case _ => sys.error("todo")
+      // Numbers 
+      case Plus(e1,e2) => Plus(desugar(e1),desugar(e2))
+      case Minus(e1,e2) => Minus(desugar(e1),desugar(e2))
+      case Times(e1,e2) => Times(desugar(e1),desugar(e2))
+      case Div(e1,e2) => Div(desugar(e1),desugar(e2))
+      // Booleans
+      case Eq(e1,e2) => Eq(desugar(e1),desugar(e2))
+      case IfThenElse(cond,e1,e2) => {
+      IfThenElse(desugar(cond),desugar(e1),desugar(e2))
+      }
+      case GreaterThan(e1,e2) => GreaterThan(desugar(e1),desugar(e2))
+      case LessThan(e1,e2) => LessThan(desugar(e1),desugar(e2))
+      // Let-bindings 
+      case Let(x,e1,e2) => Let(x,desugar(e1),desugar(e2))
+      // Syntactic-sugar 
+      case LetFun(f,arg,ty,e1,e2) => 
+        Let(f,Lambda(arg,ty,desugar(e1)),desugar(e2))   
+      case LetRec(f,arg,xty,ty,e1,e2) => 
+        Let(f,Rec(f,arg,xty,ty,desugar(e1)),desugar(e2))
+      case LetPair(x,y,e1,e2) => {
+        val p = Gensym.gensym("p");
+        Let(p,desugar(e1),subst(subst(desugar(e2),Fst(Var(p)),x),Snd(Var(p)),y))
+      } 
+      case Seq(e1,e2) => {
+        val x = Gensym.gensym("x");
+        Let(x,desugar(e1),desugar(e2))
+      }
+      // Lists
+      case Cons(e1,e2) => Cons(desugar(e1),desugar(e2))
+      case ListCase(l,e1,x,y,e2) => 
+        ListCase(desugar(l),desugar(e1),x,y,desugar(e2))
+      // Signals
+      case Pure(e1) => Pure(desugar(e1))
+      case Apply(e1,e2) => Apply(desugar(e1),desugar(e2))
+      case Read(e1) => Read(desugar(e1))
+      case MoveXY(e1,e2,e3) => MoveXY(desugar(e1),desugar(e2),desugar(e3))
+      case Over(e1,e2) => Over(desugar(e1),desugar(e2))
+      case When(e1,e2,e3) => When(desugar(e1),desugar(e2),desugar(e3))
+      // TODO: 
+      // Signal blocks
+      case e => e // EmptyList, Time, Blank, Num, Bool, String... 
       // END ANSWER
     }
   }
@@ -525,7 +565,8 @@ object Assignment3Standalone {
       case v: Value => Pure(desugar(v))
 
       // BEGIN ANSWER
-      case _ => sys.error("todo")
+
+      //case _ => sys.error("todo")
       // END ANSWER
     }
   }
