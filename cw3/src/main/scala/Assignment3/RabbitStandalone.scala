@@ -560,47 +560,9 @@ object Assignment3Standalone {
   /****************
    *  Exercise 6  *
    ****************/
-
-  def desugarBinarySigFunc(e: Expr): Expr = {
-    val x = Gensym.gensym("x");
-    val y = Gensym.gensym("y");
-    e match {
-      case Plus(se1,se2) => {
-        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Plus(Var(x),Var(y)))));
-        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
-      }
-      case Minus(se1,se2) => {
-        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Minus(Var(x),Var(y)))));
-        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
-      }
-      case Times(se1,se2) => {
-        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Times(Var(x),Var(y)))));
-        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
-      }
-      case Div(se1,se2) => {
-        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Div(Var(x),Var(y)))));
-        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
-      }
-      case Eq(se1,se2) => {
-        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,Eq(Var(x),Var(y)))));
-        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
-      }
-      case GreaterThan(se1,se2) => {
-        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,GreaterThan(Var(x),Var(y)))));
-        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
-      }
-      case LessThan(se1,se2) => {
-        val f = Pure(Lambda(x,IntTy,Lambda(y,IntTy,LessThan(Var(x),Var(y)))));
-        Apply(Apply(f,desugarBlock(se1)),desugarBlock(se2))
-      }
-      case _ => sys.error("Desugaring Signal Block does not support: " + e)
-    }
-  }
-
   def desugarBlock(e: Expr): Expr = {
     e match {
       case v: Value => Pure(desugar(v))
-
       // BEGIN ANSWER
       // function application
       case App(se1, se2) => Apply(desugarBlock(se1), desugarBlock(se2))
@@ -614,11 +576,58 @@ object Assignment3Standalone {
       // Read 
       case Read(se) => Read(desugar(se))
       // MoveXY
-      case MoveXY(se1,se2,se3) => MoveXY(desugar(se1),desugar(se2),desugar(se3))
+      case MoveXY(se1,se2,se3) => 
+        MoveXY(desugarBlock(se1),desugarBlock(se2),desugarBlock(se3))
+      // When
+      case When(se1,se2,se3) => When(desugarBlock(se1),desugarBlock(se2),desugarBlock(se3))
+      // Blank 
+      case Blank => Blank
       // Escape
       case Escape(e1) => desugar(e1)
-      // Binary ops and others
-      case e => desugarBinarySigFunc(e)
+      // Binary ops
+      case Plus(se1,se2) => {
+        val x = Gensym.gensym("x");
+        val y = Gensym.gensym("y");
+        Apply(Apply(Pure(Lambda(x,IntTy,Lambda(y,IntTy,Plus(Var(x),Var(y))))),
+          desugarBlock(se1)),desugarBlock(se2))
+      }
+      case Minus(se1,se2) => {
+        val x = Gensym.gensym("x");
+        val y = Gensym.gensym("y");
+        Apply(Apply(Pure(Lambda(x,IntTy,Lambda(y,IntTy,Minus(Var(x),Var(y))))),
+          desugarBlock(se1)),desugarBlock(se2))
+      }
+      case Times(se1,se2) => {
+        val x = Gensym.gensym("x");
+        val y = Gensym.gensym("y");
+        Apply(Apply(Pure(Lambda(x,IntTy,Lambda(y,IntTy,Times(Var(x),Var(y))))),
+          desugarBlock(se1)),desugarBlock(se2))
+      }
+      case Div(se1,se2) => {
+        val x = Gensym.gensym("x");
+        val y = Gensym.gensym("y");
+        Apply(Apply(Pure(Lambda(x,IntTy,Lambda(y,IntTy,Div(Var(x),Var(y))))),
+          desugarBlock(se1)),desugarBlock(se2))
+      }
+      case Eq(se1,se2) => {
+        val x = Gensym.gensym("x");
+        val y = Gensym.gensym("y");
+        Apply(Apply(Pure(Lambda(x,IntTy,Lambda(y,IntTy,Eq(Var(x),Var(y))))),
+          desugarBlock(se1)),desugarBlock(se2))
+      }
+      case GreaterThan(se1,se2) => {
+        val x = Gensym.gensym("x");
+        val y = Gensym.gensym("y");
+        Apply(Apply(Pure(Lambda(x,IntTy,Lambda(y,IntTy,GreaterThan(Var(x),Var(y))))),
+          desugarBlock(se1)),desugarBlock(se2))
+      }
+      case LessThan(se1,se2) => {
+        val x = Gensym.gensym("x");
+        val y = Gensym.gensym("y");
+        Apply(Apply(Pure(Lambda(x,IntTy,Lambda(y,IntTy,LessThan(Var(x),Var(y))))),
+          desugarBlock(se1)),desugarBlock(se2))
+      }
+      case _ => sys.error("Desugaring Signal Block does not support: " + e)
       // END ANSWER
     }
   }
