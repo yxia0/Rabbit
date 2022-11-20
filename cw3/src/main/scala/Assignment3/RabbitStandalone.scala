@@ -85,6 +85,19 @@ object Assignment3Standalone {
       // Variables and let-binding
       case Var(x) => ctx(x)
       case Let(x,e1,e2) => tyOf(ctx + (x -> (tyOf(ctx,e1))), e2)
+      // Let-binding syntactic sugar
+      case LetFun(f,x,ty,e1,e2) => {
+        val ty2 = tyOf(ctx + (x -> ty), e1);
+        tyOf(ctx + (f -> FunTy(ty,ty2)), e2)
+        }
+      case LetRec(f,x,ty1,ty2,e1,e2) => {
+        val fty = FunTy(ty1,ty2);
+        if (tyOf(ctx + (x -> ty1) + (f -> fty), e1) == ty2) {
+          tyOf(ctx + (f -> fty), e2)
+          } else {
+          sys.error("Type of recursive function does not match specification")
+          }
+        }
       // Functions
       case Lambda(x,ty,e) => FunTy(ty, tyOf(ctx + (x -> ty),e))
       case Rec(f,x,tyx,ty,e) => tyOf(ctx + (f -> FunTy(tyx,ty), x -> tyx),e) match {
@@ -210,10 +223,6 @@ object Assignment3Standalone {
       case _ => sys.error("Unknown type!\n" + 
           "Typing " + e.toString + "type is unknown. \n")
       // END ANSWER
-      /* TODO:
-      Add cases for LecRec and LecFunc (let-binding syntactic sugar)
-      Raise that in piazza! 
-      */ 
     }
   }
 
