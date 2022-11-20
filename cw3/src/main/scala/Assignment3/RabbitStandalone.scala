@@ -210,6 +210,10 @@ object Assignment3Standalone {
       case _ => sys.error("Unknown type!\n" + 
           "Typing " + e.toString + "type is unknown. \n")
       // END ANSWER
+      /* TODO:
+      Add cases for LecRec and LecFunc (let-binding syntactic sugar)
+      Raise that in piazza! 
+      */ 
     }
   }
 

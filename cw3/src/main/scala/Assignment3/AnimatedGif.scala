@@ -1,6 +1,6 @@
 /* --------------------------------------------------------------------------------------- *
  * --------------------------------------------------------------------------------------- *
- *                            EPL ASSIGNMENT 3 - VERSION 1.1                               *
+ *                            EPL ASSIGNMENT 3 - VERSION 1.4                               *
  * --------------------------------------------------------------------------------------- *
  * --------------------------------------------------------------------------------------- */
  
@@ -120,8 +120,8 @@ object AnimatedGif {
   // abstract class Picture
   // A picture is given by: filename, x position, y position, scale factor, angle
   // default: position (0, 0) with scaleFactor = 0.5 and no rotation
-  case class Picture( var name: String, var x: Integer = 0, var y: Integer = 0
-                , var scaleFactor: Double = 1, var angle: Double = 0)
+  case class Picture( val name: String, val x: Integer = 0, val y: Integer = 0
+                , val scaleFactor: Double = 1, val angle: Double = 0)
 
 
   // Some global configuration of animation

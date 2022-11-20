@@ -1,6 +1,6 @@
 /* --------------------------------------------------------------------------------------- *
  * --------------------------------------------------------------------------------------- *
- *                            EPL ASSIGNMENT 3 - VERSION 1.1                               *
+ *                            EPL ASSIGNMENT 3 - VERSION 1.4                               *
  * --------------------------------------------------------------------------------------- *
  * --------------------------------------------------------------------------------------- */
 
@@ -53,19 +53,15 @@ object Signal {
 
   // Type for time
   type Time = Int
-  // Environment time 
+  // Environment time signal
   val envtime: Var[Time] = Var(0)
 
   // Applicative interfaces for signals
   def pure[A](t: A): Signal[A] = Signal(t)
   def app[A, B](f: Signal[A => B])(t: Signal[A]): Signal[B] = Signal(f()(t()))
-  // wehn Signal is called, use () 
 
   // Helper signal operations
   def lift1[A, B](t: Signal[A])(f: A => B): Signal[B] = app(pure(f))(t)
-  // app used in pure case, but app takes functiona signal, f: A => B is not, we need 
-  // to turn it into signal, pure(f) return Signal(f)
-  // multiple args ?? 
   def lift2[A, B, C](t1: Signal[A])(t2: Signal[B])(f: A => B => C)
     : Signal[C] = app(app(pure(f))(t1))(t2)
   def lift3[A, B, C, D](t1: Signal[A])(t2: Signal[B])(t3: Signal[C])(f: A => B => C => D)
