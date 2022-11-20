@@ -421,7 +421,73 @@ object Assignment3Standalone {
       // Values are closed so substitution has no effect
       case v: Value => v
       // BEGIN ANSWER
-      case _ => sys.error("todo")
+      // Numbers
+      case Plus(t1,t2) => Plus(subst(t1,e2,x),subst(t2,e2,x))
+      case Minus(t1,t2) => Minus(subst(t1,e2,x),subst(t2,e2,x))
+      case Times(t1,t2) => Times(subst(t1,e2,x),subst(t2,e2,x))
+      case Div(t1,t2) => Div(subst(t1,e2,x),subst(t2,e2,x))
+      // Booleans
+      case Eq(t1,t2) => Eq(subst(t1,e2,x),subst(t2,e2,x))
+      case IfThenElse(t,t1,t2) => IfThenElse(subst(t,e2,x),subst(t1,e2,x),subst(t2,e2,x))
+      case GreaterThan(t1, t2) => GreaterThan(subst(t1, e2, x), subst(t2, e2, x))
+      case LessThan(t1, t2) => LessThan(subst(t1, e2, x), subst(t2, e2, x))
+      // Variables and Bindings
+      case Var(y) => if (x == y) e2 else Var(y)
+      case Let(y,t1,t2) => {
+        val z = Gensym.gensym(y);
+        Let(z,subst(t1,e2,x),subst(swap(t2,y,z),e2,x))
+      }
+      // Functions 
+      case Lambda(y,ty,t1) => {
+        val z = Gensym.gensym(y);
+        Lambda(z,ty,subst(swap(t1,y,z),e2,x))
+      }
+      case Rec(f,y,ty1,ty2,t1) => {
+        val g = Gensym.gensym(f);
+        val z = Gensym.gensym(y);
+        Rec(g,z,ty1,ty2,subst(swap(swap(t1,f,g),y,z),e2,x))
+      }
+      case App(t1,t2) => App(subst(t1,e2,x),subst(t2,e2,x))
+      // Lists
+      case EmptyList(ty) => EmptyList(ty)
+      case Cons(t1,t2) => Cons(subst(t1,e2,x),subst(t2,e2,x))
+      case ListCase(t1,t2,y1,y2,t3) =>
+        ListCase(subst(t1,e2,x),subst(t2,e2,x),y1,y2,subst(t3,e2,x))
+      // Pairs 
+      case Pair(t1,t2) => Pair(subst(t1,e2,x),subst(t2,e2,x))
+      case Fst(t1) => Fst(subst(t1,e2,x))
+      case Snd(t1) => Snd(subst(t1,e2,x))
+      // Sequencing
+      case Seq(t1,t2) => Seq(subst(t1,e2,x),subst(t2,e2,x))
+      // Syntactic Sugar 
+      case LetPair(y1,y2,t1,t2) => {
+        val z1 = Gensym.gensym(y1);
+        val z2 = Gensym.gensym(y2);
+        LetPair(z1,z2,subst(t1,e2,x),subst(swap(swap(t2,y1,z1),y2,z2),e2,x))
+        // in solution it does swap(swap(e2,z1,y1),z2,y2
+      } 
+      case LetFun(f,y,ty,t1,t2) => {
+        val g = Gensym.gensym(f);
+        val z = Gensym.gensym(y);
+        LetFun(g,z,ty,subst(swap(t1,y,z),e2,x),subst(swap(t2,f,g),e2,x))
+      }
+      case LetRec(f,y,ty1,ty2,t1,t2) => {
+        val g = Gensym.gensym(f);
+        val z = Gensym.gensym(y);
+        LetRec(g,z,ty1,ty2,subst(swap(swap(t1,f,g),y,z),e2,x),subst(swap(t2,f,g),e2,x))
+      }
+      // Signals
+      case Time => Time
+      case Pure(t1) => Pure(subst(t1,e2,x))
+      case Apply(t1,t2) => Apply(subst(t1,e2,x),subst(t2,e2,x))
+      case Read(t1) => Read(subst(t1,e2,x))
+      case MoveXY(t1,t2,t3) => MoveXY(subst(t1,e2,x),subst(t2,e2,x),subst(t3,e2,x))
+      case Blank => Blank
+      case Over(t1,t2) => Over(subst(t1,e2,x),subst(t2,e2,x))
+      case When(t1,t2,t3) => When(subst(t1,e2,x),subst(t2,e2,x),subst(t3,e2,x))
+      case SignalBlock(se) => SignalBlock(subst(se,e2,x))
+      case Escape(t1) => Escape(subst(t1,e2,x))
+      case _ => sys.error("Substitution not implemented for " + e1)
       // END ANSWER
     }
   }
