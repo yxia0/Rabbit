@@ -498,7 +498,7 @@ object Assignment3Standalone {
    ****************/
 
   // ----------------------------------------------------------------
-  // Desugaring
+  // Desugaring 
   def desugar(e: Expr): Expr = {
     def desugarVal(v: Value): Value = v match {
       case PairV(v1, v2) => PairV(desugarVal(v1), desugarVal(v2))
@@ -714,7 +714,53 @@ object Assignment3Standalone {
       // Values
       case v: Value => v
       // BEGIN ANSWER
-      case _ => sys.error("todo")
+      // Binary Operations 
+      // Example 
+      case Plus(e1,e2) => add(eval(env,e1),eval(env,e2))
+
+      // Booleans 
+      case IfThenElse(e,e1,e2) => {
+        eval(e) match {
+          case BoolV(true) => eval(e1)
+          case BoolV(false) => eval(e2)
+          case _ =>  sys.error("conditional must evaluate to a boolean")
+        }
+      }
+      // Function Application 
+      case App(e1,e2) => {
+        eval(e1) match {
+          case FunV(x,ty,e) => eval(subst(e,eval(e2),x))
+          case RecV(f,x,tyx,ty,e) => 
+            eval(subst(subst(e,eval(e2),x),RecV(f,x,tyx,ty,e),f))
+          case _ => sys.error("first argument of function application must be a function")
+        }
+      }
+      // Let-bindings
+      case Let(x,e1,e2) => eval(subst(e2,eval(e1),x))
+      // ListCase 
+      case ListCase(l,e1,x,y,e2) => eval(l) match {
+          case EmptyList(ty) => eval(e1)
+          case ListV(v1 :: v2) => eval(subst(subst(e2,v1,x),v2,y))
+          case _ => sys.error("argument to ListCase ", l, " must be a list")
+      }
+      // Pair - First and Second 
+      case Fst(e1) => eval(e1) match {
+        case PairV(x,_) => x 
+        case _ => sys.error("first must be applied to a pair")
+      }
+      case Snd(e1) => eval(e1) match {
+        case PairV(_,y) => y
+        case _ => sys.error("second must be applied to a pair") 
+      }
+      // Signals  
+      case Pure(e1) => PureV(eval(e1))
+      case Apply(e1,e2) => ApplyV(eval(e1),eval(e2))
+      case MoveXY(x,y,e1) => MoveXYV(eval(x),eval(y),eval(e1))
+      case When(e1,e2,e3) => WhenV(eval(e1),eval(e2),eval(e3))
+      case Read(e1) => ReadV(eval(e1))
+      case Over(e1,e2) => OverV(eval(e1),eval(e2))
+
+      case _ => sys.error("Evaluation does not support ", expr)
       // END ANSWER
     }
 
