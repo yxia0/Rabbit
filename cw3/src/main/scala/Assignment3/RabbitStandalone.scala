@@ -714,10 +714,6 @@ object Assignment3Standalone {
       // Values
       case v: Value => v
       // BEGIN ANSWER
-      // Binary Operations 
-      // Example 
-      case Plus(e1,e2) => add(eval(env,e1),eval(env,e2))
-
       // Booleans 
       case IfThenElse(e,e1,e2) => {
         eval(e) match {
@@ -739,9 +735,9 @@ object Assignment3Standalone {
       case Let(x,e1,e2) => eval(subst(e2,eval(e1),x))
       // ListCase 
       case ListCase(l,e1,x,y,e2) => eval(l) match {
-          case EmptyList(ty) => eval(e1)
-          case ListV(v1 :: v2) => eval(subst(subst(e2,v1,x),v2,y))
-          case _ => sys.error("argument to ListCase ", l, " must be a list")
+          case ListV(Nil) => eval(e1)
+          case ListV(v1 :: v2) => eval(subst(subst(e2,v1,x),ListV(v2),y))
+          case _ => sys.error("argument to ListCase " + l + " must be a list")
       }
       // Pair - First and Second 
       case Fst(e1) => eval(e1) match {
@@ -760,7 +756,11 @@ object Assignment3Standalone {
       case Read(e1) => ReadV(eval(e1))
       case Over(e1,e2) => OverV(eval(e1),eval(e2))
 
-      case _ => sys.error("Evaluation does not support ", expr)
+      // Binary Operations 
+      case extractConstructor(expr) => 
+        extractOperation(expr)(eval(extractFstArg(expr)),eval(extractSndArg(expr)))
+
+      case _ => sys.error("Evaluation does not support " + expr)
       // END ANSWER
     }
 
