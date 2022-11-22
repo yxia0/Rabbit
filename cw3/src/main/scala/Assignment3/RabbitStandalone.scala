@@ -714,6 +714,9 @@ object Assignment3Standalone {
       // Values
       case v: Value => v
       // BEGIN ANSWER
+      // Binary operators 
+      case Plus(_,_)|Minus(_,_)|Times(_,_)|Div(_,_)|Eq(_,_)|GreaterThan(_,_)|LessThan(_,_)|Pair(_,_)|Cons(_,_) => 
+        extractOperation(expr)(eval(extractFstArg(expr)))(eval(extractSndArg(expr)))
       // Booleans 
       case IfThenElse(e,e1,e2) => {
         eval(e) match {
@@ -722,6 +725,9 @@ object Assignment3Standalone {
           case _ =>  sys.error("conditional must evaluate to a boolean")
         }
       }
+      // Functions 
+      case Lambda(x,ty,e) => FunV(x,ty,e)
+      case Rec(f,x,tyx,ty,e) => RecV(f,x,tyx,ty,e)
       // Function Application 
       case App(e1,e2) => {
         eval(e1) match {
@@ -733,6 +739,8 @@ object Assignment3Standalone {
       }
       // Let-bindings
       case Let(x,e1,e2) => eval(subst(e2,eval(e1),x))
+      // Empty List
+      case EmptyList(_) => ListV(Nil)
       // ListCase 
       case ListCase(l,e1,x,y,e2) => eval(l) match {
           case ListV(Nil) => eval(e1)
@@ -755,10 +763,8 @@ object Assignment3Standalone {
       case When(e1,e2,e3) => WhenV(eval(e1),eval(e2),eval(e3))
       case Read(e1) => ReadV(eval(e1))
       case Over(e1,e2) => OverV(eval(e1),eval(e2))
-
-      // Binary Operations 
-      case extractConstructor(expr) => 
-        extractOperation(expr)(eval(extractFstArg(expr)),eval(extractSndArg(expr)))
+      case Time => TimeV 
+      case Blank => BlankV
 
       case _ => sys.error("Evaluation does not support " + expr)
       // END ANSWER
